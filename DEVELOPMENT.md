@@ -335,3 +335,142 @@ PYTHONPATH=backend python tests/test_template_parser.py
 - 将 template_rules 与 DocxEngine 的 StyleManager、TableManager、FigureManager 深度打通；
 - 引入真实老师批注解析，并将批注约束写入 MemoryGuard；
 - 增加 pytest/API/前端 E2E 测试，覆盖完整模板解析和 DOCX 精排闭环。
+
+---
+
+## 15. v0.4 DOCX 精排增强
+
+v0.4 将 DOCX 生成从“最小示例”升级为“结构化论文数据 + template_rules 驱动”的完整论文 DOCX 生成流程。新增和增强的目录结构如下：
+
+```text
+backend/app/docx_engine/
+  generator.py                 # DOCX 生成主入口，保留 generate_sample 并新增 generate_full
+  docx_models.py               # 结构化论文输入模型 PaperDocument / PaperMeta / PaperChapter 等
+  rule_resolver.py             # 合并 template_rules 与默认论文格式规则
+  style_manager.py             # 创建和应用正文/标题样式
+  section_manager.py           # 页面尺寸、页边距、分页符
+  header_footer_manager.py     # 页眉、页脚、PAGE 页码字段占位
+  paragraph_manager.py         # 正文段落、缩进、行距、对齐
+  heading_manager.py           # 一级、二级、三级标题样式应用
+  table_manager.py             # 表题、三线表、单元格样式
+  figure_manager.py            # 图占位和图题
+  reference_manager.py         # 参考文献标题和编号样式
+  abstract_manager.py          # 中文摘要、英文摘要、关键词
+  cover_manager.py             # 封面占位结构
+  toc_manager.py               # 目录占位，后续扩展 Word TOC 域
+  format_validator.py          # 生成后的格式审查报告
+```
+
+### 15.1 v0.4 实现内容
+
+完整 DOCX 生成结果至少包含：
+
+- 封面占位页：论文题目、学校、专业、班级、学生姓名、学号、指导教师、日期；
+- 中文摘要、中文关键词；
+- 英文 Abstract、Keywords；
+- 目录占位，并提示“请在 Word/WPS 中更新目录域”；
+- 正文多章节，至少包含第 1 章、两个二级标题、正文段落、图占位、三线表；
+- 参考文献标题和至少 3 条参考文献；
+- 页边距、正文样式、标题样式、图题、表题、三线表、页眉页脚和页码字段占位；
+- 格式审查报告，包括得分、warnings、checks、已应用规则、缺失规则。
+
+### 15.2 调用完整 DOCX 生成接口
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/thesis/docx/generate-full \
+  -H 'Content-Type: application/json' \
+  -d '{"project_id":1,"use_template_rules":true,"use_mock_content":true}'
+```
+
+返回示例字段：
+
+```json
+{
+  "project_id": 1,
+  "docx_path": "backend/storage/docx/project_1_full.docx",
+  "download_url": "/api/docx/download/project_1_full.docx",
+  "used_template_rules": true,
+  "applied_rules_summary": [],
+  "missing_rules": [],
+  "format_validation": {
+    "passed": true,
+    "score": 90,
+    "warnings": [],
+    "checks": []
+  }
+}
+```
+
+### 15.3 查看生成文件
+
+接口返回 `download_url` 后可下载：
+
+```bash
+curl -L -o full.docx http://127.0.0.1:8000/api/docx/download/project_1_full.docx
+```
+
+生成文件位于运行环境的 `backend/storage/docx/`，该目录为生成产物，不提交到 Git。
+
+### 15.4 确认 template_rules 是否被应用
+
+1. 先按 v0.3 调用 `/api/thesis/templates/analyze-docx` 生成模板分析结果；
+2. 调用 `/api/thesis/templates/apply` 应用模板规则；
+3. 调用 `/api/thesis/docx/generate-full`，并设置 `use_template_rules: true`；
+4. 查看返回值：
+   - `used_template_rules` 是否为 `true`；
+   - `applied_rules_summary` 是否包含 `page.*`、`body.*`、`headings.level_*`、`header/footer` 等项目；
+   - `missing_rules` 表示缺失字段已使用默认论文格式。
+
+### 15.5 查看格式审查报告
+
+完整 DOCX 生成接口会返回 `format_validation`：
+
+- `passed`：核心结构和格式检查是否通过；
+- `score`：基础评分；
+- `warnings`：缺失规则或未通过项；
+- `checks`：页面边距、正文样式、标题样式、图题、表题、三线表、参考文献、页眉页脚、是否使用模板规则等检查项。
+
+### 15.6 v0.4 测试脚本
+
+```bash
+PYTHONPATH=backend python tests/scripts/test_generate_full_docx.py
+```
+
+该脚本会验证：
+
+1. 无 `template_rules` 时可以生成完整 DOCX；
+2. 有 `template_rules` 时可以生成完整 DOCX；
+3. 三线表生成不报错；
+4. 图占位生成不报错；
+5. `format_validator` 返回必要字段；
+6. `/api/thesis/docx/generate-full` 可通过 FastAPI TestClient 调用。
+
+### 15.7 前端工作台验收
+
+进入论文工作台后，在 DOCX 生成区域可以：
+
+1. 打开或关闭“使用模板规则”开关；
+2. 点击“生成完整论文 DOCX”；
+3. 查看下载路径；
+4. 查看 `applied_rules_summary`；
+5. 查看 `missing_rules`；
+6. 查看 `format_validation`、格式审查评分和 warnings。
+
+### 15.8 v0.4 当前能力边界
+
+- 当前仍不是完整 WPS 级排版；
+- 目录域只做占位，真实可更新 TOC 域留到 v0.5；
+- 复杂封面暂时是占位结构；
+- 图片真实生成、SVG/PNG 插入和图表布局后续实现；
+- 老师批注深度返修后续实现；
+- 参考文献智能排序和自动引用重排后续实现；
+- 精准复刻学校模板需要 v0.5/v0.6 继续增强 OOXML 级能力。
+
+### 15.9 v0.5 建议方向
+
+- 实现真实 Word TOC 域和多级标题编号；
+- 增强 OOXML 表格边框审计和复杂三线表复刻；
+- 接入真实章节数据、引用数据和老师批注返修数据；
+- 支持图片/SVG 插入和图题自动编号；
+- 输出独立格式审查报告文件；
+- 引入更完整的自动化测试和端到端验收。

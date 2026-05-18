@@ -22,6 +22,7 @@ export interface ThesisProject {
   status: ProjectStatus
   current_step: string
   step_statuses: Record<string, StepStatus>
+  applied_template_rules: Record<string, unknown>
   created_at: string
   updated_at: string
 }
@@ -76,4 +77,20 @@ export interface TemplateAnalysisResult {
   source_evidence_json: any[]
   applied: boolean
   created_at: string
+}
+
+
+export interface GenerateFullDocxResponse {
+  project_id: number
+  docx_path: string
+  download_url: string
+  used_template_rules: boolean
+  applied_rules_summary: string[]
+  missing_rules: string[]
+  format_validation: {
+    passed: boolean
+    score: number
+    warnings: string[]
+    checks: Record<string, unknown>[]
+  }
 }

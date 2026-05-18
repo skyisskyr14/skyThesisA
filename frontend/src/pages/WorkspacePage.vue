@@ -6,7 +6,7 @@ import ChatPanel from '../components/ChatPanel.vue'
 import ProcessSidebar from '../components/ProcessSidebar.vue'
 import StatusFooter from '../components/StatusFooter.vue'
 import { useProjectStore } from '../stores/projectStore'
-import type { ChatIntent, ReviewResult } from '../types'
+import type { ChatIntent, GenerateFullDocxResponse, ReviewResult } from '../types'
 
 const route = useRoute()
 const router = useRouter()
@@ -18,6 +18,8 @@ const outlineChapters = ref<string[]>([])
 const chapterPreview = ref('')
 const docxDownloadUrl = ref('')
 const reviewResult = ref<ReviewResult | null>(null)
+const fullDocxResult = ref<GenerateFullDocxResponse | null>(null)
+const useTemplateRules = ref(true)
 const operationLogs = ref<string[]>(['v0.2 工作台已就绪，等待创建第一条论文任务闭环。'])
 
 const currentStepTitle = computed(() => {
@@ -76,6 +78,15 @@ async function run(action: 'template' | 'outline' | 'chapter' | 'review' | 'docx
   operationLogs.value.unshift(`完成执行：${action}`)
 }
 
+async function generateFullDocx() {
+  selectedStep.value = 'formatting'
+  const response = await api.generateFullDocx(projectId, useTemplateRules.value)
+  fullDocxResult.value = response
+  docxDownloadUrl.value = response.download_url
+  result.value = JSON.stringify(response, null, 2)
+  operationLogs.value.unshift(`完整论文 DOCX 已生成，格式审查得分：${response.format_validation.score}`)
+}
+
 async function runBlockedReview() {
   selectedStep.value = 'review'
   const response = await api.runReview(projectId, '流程图线条交叉，表格不是三线表，测试章节写成操作流水账。')
@@ -106,7 +117,7 @@ function onChatParsed(payload: ChatIntent) {
           <h1>{{ store.currentProject.title }}</h1>
           <p>当前状态：{{ store.currentProject.status }} / 当前版本：v0.2 / 当前工作区：{{ currentStepTitle }}</p>
         </div>
-        <el-button type="success" @click="run('docx')">生成 DOCX</el-button>
+        <el-button type="success" @click="generateFullDocx">生成完整论文 DOCX</el-button>
       </div>
 
       <el-alert title="v0.2 完整闭环" description="依次完成模板分析、大纲生成、章节生成、对话记忆、DOCX 生成、MemoryGuard 审查和导出闸门判断。" type="info" show-icon />
@@ -122,6 +133,8 @@ function onChatParsed(payload: ChatIntent) {
         <el-button type="primary" @click="run('outline')">大纲生成</el-button>
         <el-button type="primary" @click="run('chapter')">生成第1章</el-button>
         <el-button type="success" @click="run('docx')">生成 DOCX</el-button>
+        <el-button type="success" @click="generateFullDocx">生成完整论文 DOCX</el-button>
+        <el-switch v-model="useTemplateRules" active-text="使用模板规则" inactive-text="默认格式" />
         <el-button type="warning" @click="run('review')">最终审查</el-button>
         <el-button type="danger" @click="runBlockedReview">模拟禁止导出</el-button>
       </div>
@@ -138,6 +151,18 @@ function onChatParsed(payload: ChatIntent) {
         </template>
         <template v-else-if="selectedStep === 'formatting'">
           <p>DOCX 下载路径：<code>{{ docxDownloadUrl || '尚未生成' }}</code></p>
+          <el-card v-if="fullDocxResult" class="docx-report">
+            <h3>格式审查报告</h3>
+            <p>是否使用模板规则：{{ fullDocxResult.used_template_rules ? '是' : '否' }}</p>
+            <p>格式审查评分：{{ fullDocxResult.format_validation.score }}</p>
+            <p>审查结果：{{ fullDocxResult.format_validation.passed ? '通过' : '存在警告' }}</p>
+            <h4>已应用规则</h4>
+            <el-tag v-for="item in fullDocxResult.applied_rules_summary" :key="item" class="tag-item">{{ item }}</el-tag>
+            <h4>缺失规则（已使用默认值）</h4>
+            <el-tag v-for="item in fullDocxResult.missing_rules" :key="item" type="warning" class="tag-item">{{ item }}</el-tag>
+            <h4>warnings</h4>
+            <el-alert v-for="warning in fullDocxResult.format_validation.warnings" :key="warning" type="warning" :title="warning" show-icon />
+          </el-card>
         </template>
         <template v-else-if="selectedStep === 'review'">
           <el-result

@@ -1,4 +1,4 @@
-from app.routes import chat, docx, files, memory, mock_pipeline, projects, reviews, templates
+from app.routes import chat, docx, files, memory, mock_pipeline, projects, reviews, templates, thesis_docx
 
 routers = [
     projects.router,
@@ -9,4 +9,5 @@ routers = [
     reviews.router,
     docx.router,
     templates.router,
+    thesis_docx.router,
 ]

@@ -799,4 +799,5 @@ Thesis Agent 是一个以 DOCX 精排引擎为核心，以多 Agent 审查返工
 - 工作台可依次执行模板分析、大纲生成、章节生成、右侧对话记忆、DOCX 生成和最终审查；
 - v0.3 新增真实 DOCX 模板解析引擎，输出统一 `template_rules` JSON，并可初步应用到 DOCX 生成；
 - 仓库不提交 DOCX 等二进制测试产物，测试模板由 `tests/scripts/create_sample_template.py` 自动生成；
+- v0.4 增强 DOCX 精排引擎，支持封面、摘要、目录、正文、图占位、三线表、参考文献、页眉页脚、格式审查报告；
 - 详细安装、启动和接口测试步骤见 `DEVELOPMENT.md`。

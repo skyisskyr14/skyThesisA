@@ -189,3 +189,19 @@ class ApplyTemplateRulesResponse(BaseModel):
     analysis_id: int
     applied: bool
     message: str
+
+
+class GenerateFullDocxRequest(BaseModel):
+    project_id: int
+    use_template_rules: bool = True
+    use_mock_content: bool = True
+
+
+class GenerateFullDocxResponse(BaseModel):
+    project_id: int
+    docx_path: str
+    download_url: str
+    used_template_rules: bool
+    applied_rules_summary: list[str]
+    missing_rules: list[str]
+    format_validation: dict[str, Any]

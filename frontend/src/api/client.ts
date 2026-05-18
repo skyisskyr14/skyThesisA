@@ -1,4 +1,4 @@
-import type { ChatIntent, ReviewResult, TemplateAnalysisResult, ThesisProject } from '../types'
+import type { ChatIntent, GenerateFullDocxResponse, ReviewResult, TemplateAnalysisResult, ThesisProject } from '../types'
 
 const baseUrl = import.meta.env.VITE_API_BASE_URL || ''
 
@@ -34,5 +34,10 @@ export const api = {
     request<TemplateAnalysisResult>('/api/thesis/templates/analyze-docx', { method: 'POST', body: JSON.stringify(payload) }),
   latestTemplateResult: (projectId: number) => request<TemplateAnalysisResult>(`/api/thesis/templates/${projectId}/latest`),
   applyTemplateRules: (projectId: number, analysisId: number) =>
-    request('/api/thesis/templates/apply', { method: 'POST', body: JSON.stringify({ project_id: projectId, analysis_id: analysisId }) })
+    request('/api/thesis/templates/apply', { method: 'POST', body: JSON.stringify({ project_id: projectId, analysis_id: analysisId }) }),
+  generateFullDocx: (projectId: number, useTemplateRules: boolean) =>
+    request<GenerateFullDocxResponse>('/api/thesis/docx/generate-full', {
+      method: 'POST',
+      body: JSON.stringify({ project_id: projectId, use_template_rules: useTemplateRules, use_mock_content: true })
+    })
 }

@@ -5,9 +5,9 @@ from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
 from app.database import BASE_DIR, get_db
-from app.docx_engine import DocxEngine
+from app.docx_engine import DocxEngine, build_mock_paper
 from app.models.entities import ThesisProject
-from app.schemas.common import DocxResponse
+from app.schemas.common import DocxResponse, GenerateFullDocxRequest, GenerateFullDocxResponse
 
 router = APIRouter(prefix="/api/docx", tags=["docx"])
 EXPORT_DIR = BASE_DIR / "storage" / "docx"

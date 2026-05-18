@@ -159,3 +159,11 @@ body {
   background: #fff7ed;
   color: #9a3412;
 }
+
+.docx-report {
+  margin: 12px 0;
+}
+
+.tag-item {
+  margin: 4px 6px 4px 0;
+}
