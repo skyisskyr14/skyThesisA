@@ -30,11 +30,27 @@ export interface ChatIntent {
   message: string
   intent: string
   scope?: string
+  target?: string
+  requirement: string
   protect_others: boolean
   protect_format: boolean
+  should_create_rule: boolean
   memory_action?: string
   parsed_task: Record<string, unknown>
   agent_reply: string
+}
+
+export interface ReviewResult {
+  report_id: number
+  project_id: number
+  passed: boolean
+  allow_export: boolean
+  score: number
+  blocked_reasons: string[]
+  warnings: string[]
+  matched_rules: Record<string, unknown>[]
+  auto_fix_suggestions: string[]
+  checks: Record<string, unknown>
 }
 
 export interface ReviewReport {

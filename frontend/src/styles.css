@@ -136,3 +136,26 @@ body {
   padding-top: 14px;
   color: #475569;
 }
+
+.step-card {
+  width: 100%;
+  text-align: left;
+  background: #fff;
+  cursor: pointer;
+}
+
+.step-card.current {
+  box-shadow: inset 3px 0 0 #67c23a;
+}
+
+.step-work-area {
+  margin-top: 16px;
+}
+
+.operation-log {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 10px;
+  background: #fff7ed;
+  color: #9a3412;
+}

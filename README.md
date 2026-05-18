@@ -790,10 +790,11 @@ Thesis Agent 是一个以 DOCX 精排引擎为核心，以多 Agent 审查返工
 
 ## 二十二、MVP 运行说明
 
-当前仓库已按照本 README 的定位搭建前后端分离 MVP：
+当前仓库已按照本 README 的定位搭建前后端分离 MVP，并在 v0.2 跑通第一条论文任务闭环：
 
 - 后端位于 `backend/`，使用 FastAPI、SQLite、SQLAlchemy、python-docx；
 - 前端位于 `frontend/`，使用 Vue 3、Vite、TypeScript、Element Plus；
-- DOCX 最小生成示例位于 `backend/app/docx_engine/`；
+- DOCX 最小生成示例位于 `backend/app/docx_engine/`，生成文件保存到 `backend/storage/docx/`；
 - MemoryGuard 基础规则、错误转规则和最终审查闸门位于 `backend/app/memory_guard/`；
+- 工作台可依次执行模板分析、大纲生成、章节生成、右侧对话记忆、DOCX 生成和最终审查；
 - 详细安装、启动和接口测试步骤见 `DEVELOPMENT.md`。

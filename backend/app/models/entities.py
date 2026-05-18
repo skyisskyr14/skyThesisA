@@ -177,10 +177,12 @@ class RuleMemory(TimestampMixin, Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     project_id: Mapped[int | None] = mapped_column(ForeignKey("thesis_project.id"), nullable=True)
-    rule_id: Mapped[str] = mapped_column(String(120), index=True)
-    trigger: Mapped[list] = mapped_column(JSON, default=list)
-    rule: Mapped[str] = mapped_column(Text)
+    rule_code: Mapped[str] = mapped_column(String(120), index=True)
+    rule_name: Mapped[str] = mapped_column(String(200))
+    rule_type: Mapped[str] = mapped_column(String(80), default="general")
     severity: Mapped[str] = mapped_column(String(10), default="A")
+    trigger_keywords: Mapped[list] = mapped_column(JSON, default=list)
+    correction_strategy: Mapped[str] = mapped_column(Text)
     block_final_output: Mapped[bool] = mapped_column(Boolean, default=True)
 
     project: Mapped[ThesisProject | None] = relationship(back_populates="rules")

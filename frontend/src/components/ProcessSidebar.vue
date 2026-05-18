@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import type { StepStatus } from '../types'
 
-const props = defineProps<{ currentStep: string; statuses: Record<string, StepStatus> }>()
+const props = defineProps<{ currentStep: string; statuses: Record<string, StepStatus>; selectedStep?: string }>()
+const emit = defineEmits<{ select: [step: string] }>()
 
 const steps = [
   ['upload', '上传资料'],
@@ -19,17 +20,18 @@ const steps = [
 <template>
   <aside class="process-sidebar">
     <h3>论文流程</h3>
-    <div
+    <button
       v-for="([key, label], index) in steps"
       :key="key"
       class="step-card"
-      :class="{ active: key === props.currentStep }"
+      :class="{ active: key === (props.selectedStep || props.currentStep), current: key === props.currentStep }"
+      @click="emit('select', key)"
     >
       <span class="step-index">{{ index + 1 }}</span>
       <div>
         <strong>{{ label }}</strong>
         <small>{{ props.statuses[key] || 'pending' }}</small>
       </div>
-    </div>
+    </button>
   </aside>
 </template>

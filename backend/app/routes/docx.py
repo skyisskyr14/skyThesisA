@@ -10,7 +10,7 @@ from app.models.entities import ThesisProject
 from app.schemas.common import DocxResponse
 
 router = APIRouter(prefix="/api/docx", tags=["docx"])
-EXPORT_DIR = BASE_DIR / "storage" / "exports"
+EXPORT_DIR = BASE_DIR / "storage" / "docx"
 
 
 @router.post("/generate", response_model=DocxResponse)

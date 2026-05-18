@@ -49,8 +49,11 @@ class ChatIntent(BaseModel):
     message: str
     intent: str
     scope: str | None = None
+    target: str | None = None
+    requirement: str
     protect_others: bool = False
     protect_format: bool = False
+    should_create_rule: bool = False
     memory_action: str | None = None
     parsed_task: dict[str, Any]
     agent_reply: str
@@ -92,20 +95,24 @@ class ErrorRead(ORMModel):
 
 class RuleCreate(BaseModel):
     project_id: int | None = None
-    rule_id: str
-    trigger: list[str]
-    rule: str
+    rule_code: str
+    rule_name: str
+    rule_type: str = "general"
     severity: str = "A"
+    trigger_keywords: list[str]
+    correction_strategy: str
     block_final_output: bool = True
 
 
 class RuleRead(ORMModel):
     id: int
     project_id: int | None
-    rule_id: str
-    trigger: list[str]
-    rule: str
+    rule_code: str
+    rule_name: str
+    rule_type: str
     severity: str
+    trigger_keywords: list[str]
+    correction_strategy: str
     block_final_output: bool
     created_at: datetime
 
@@ -123,6 +130,19 @@ class ReviewRead(ORMModel):
     allow_export: bool
     blocked_reasons: list[str]
     created_at: datetime
+
+
+class ReviewResult(BaseModel):
+    report_id: int
+    project_id: int
+    passed: bool
+    allow_export: bool
+    score: int
+    blocked_reasons: list[str]
+    warnings: list[str]
+    matched_rules: list[dict[str, Any]]
+    auto_fix_suggestions: list[str]
+    checks: dict[str, Any]
 
 
 class MockResult(BaseModel):

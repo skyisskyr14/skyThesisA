@@ -1,4 +1,4 @@
-import type { ChatIntent, ReviewReport, ThesisProject } from '../types'
+import type { ChatIntent, ReviewResult, ThesisProject } from '../types'
 
 const baseUrl = import.meta.env.VITE_API_BASE_URL || ''
 
@@ -28,6 +28,6 @@ export const api = {
   listErrors: () => request('/api/errors'),
   listRules: () => request('/api/rules'),
   runReview: (projectId: number, content: string) =>
-    request<ReviewReport>('/api/reviews/run', { method: 'POST', body: JSON.stringify({ project_id: projectId, content }) }),
+    request<ReviewResult>('/api/reviews/run', { method: 'POST', body: JSON.stringify({ project_id: projectId, content }) }),
   generateDocx: (projectId: number) => request('/api/docx/generate?project_id=' + projectId, { method: 'POST' })
 }

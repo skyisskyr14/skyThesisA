@@ -4,12 +4,12 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.memory_guard.service import run_final_review
 from app.models.entities import ReviewReport, ThesisProject
-from app.schemas.common import ReviewRead, ReviewRequest
+from app.schemas.common import ReviewRead, ReviewRequest, ReviewResult
 
 router = APIRouter(prefix="/api/reviews", tags=["reviews"])
 
 
-@router.post("/run", response_model=ReviewRead)
+@router.post("/run", response_model=ReviewResult)
 def run_review(payload: ReviewRequest, db: Session = Depends(get_db)):
     project = db.get(ThesisProject, payload.project_id)
     if not project:

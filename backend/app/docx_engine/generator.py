@@ -18,17 +18,36 @@ class DocxEngine:
     def generate_sample(self, project_id: int, title: str) -> Path:
         document = Document()
         self._setup_styles(document)
+        self._add_title(document, title)
+        self._add_abstract(document)
+        self._add_chapter(document, title)
+        self._add_references(document)
 
+        output = self.output_dir / f"project_{project_id}_sample.docx"
+        document.save(output)
+        return output
+
+    def _add_title(self, document: Document, title: str) -> None:
         heading = document.add_paragraph()
         heading.alignment = WD_ALIGN_PARAGRAPH.CENTER
         run = heading.add_run(title)
         run.bold = True
         run.font.size = Pt(18)
 
-        document.add_heading("第1章 绪论", level=1)
-        document.add_paragraph("本示例 DOCX 由 python-docx 生成，后续将接入结构化 JSON、模板规则与局部替换能力。")
-        document.add_paragraph("图 1-1 系统架构图占位：白底黑字、线条不交叉、节点不重叠。")
+    def _add_abstract(self, document: Document) -> None:
+        document.add_heading("摘  要", level=1)
+        document.add_paragraph("摘要占位：本论文围绕系统背景、设计实现、测试结果和应用价值展开说明。")
+        document.add_paragraph("关键词：Thesis Agent；DOCX 精排；MemoryGuard；多 Agent")
 
+    def _add_chapter(self, document: Document, title: str) -> None:
+        document.add_heading("第1章 绪论", level=1)
+        document.add_paragraph(
+            f"本文以《{title}》为研究对象，MVP 阶段先验证项目创建、模板分析、大纲生成、章节写作、DOCX 生成和最终审查闭环。"
+        )
+        document.add_paragraph("图 1-1 系统架构图占位：白底黑字、线条不交叉、节点不重叠。")
+        self._add_three_line_table(document)
+
+    def _add_three_line_table(self, document: Document) -> None:
         caption = document.add_paragraph("表 1-1 MVP 三线表示例")
         caption.alignment = WD_ALIGN_PARAGRAPH.CENTER
         table = document.add_table(rows=4, cols=3)
@@ -47,12 +66,9 @@ class DocxEngine:
                 table.cell(row_index, col_index).text = text
         self._apply_three_line_table(table)
 
+    def _add_references(self, document: Document) -> None:
         document.add_heading("参考文献", level=1)
         document.add_paragraph("[1] 后续由 CitationAgent 根据引用位置自动生成。")
-
-        output = self.output_dir / f"project_{project_id}_sample.docx"
-        document.save(output)
-        return output
 
     def _setup_styles(self, document: Document) -> None:
         normal = document.styles["Normal"]
