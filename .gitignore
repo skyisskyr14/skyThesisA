@@ -1,17 +1,24 @@
-# Python
+# Binary/generated artifacts
+*.docx
+*.pdf
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.zip
+*.gz
+*.pyc
 __pycache__/
-*.py[cod]
-.venv/
-venv/
-backend/data/*.db
-backend/storage/uploads/*
-backend/storage/exports/*
-backend/storage/docx/*
-!backend/storage/uploads/.gitkeep
-!backend/storage/exports/.gitkeep
-!backend/storage/docx/.gitkeep
-
-# Frontend
 node_modules/
 frontend/dist/
+backend/storage/
+tests/fixtures/*.docx
+
+# Python
+.venv/
+venv/
+backend/.venv/
+backend/data/*.db
+
+# Frontend
 .env

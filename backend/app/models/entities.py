@@ -23,6 +23,7 @@ class ThesisProject(TimestampMixin, Base):
     status: Mapped[ProjectStatus] = mapped_column(Enum(ProjectStatus), default=ProjectStatus.created)
     current_step: Mapped[str] = mapped_column(String(60), default="upload")
     step_statuses: Mapped[dict] = mapped_column(JSON, default=dict)
+    applied_template_rules: Mapped[dict] = mapped_column(JSON, default=dict)
 
     files: Mapped[list["PaperFile"]] = relationship(back_populates="project")
     versions: Mapped[list["ThesisVersion"]] = relationship(back_populates="project")
@@ -31,7 +32,24 @@ class ThesisProject(TimestampMixin, Base):
     errors: Mapped[list["ErrorMemory"]] = relationship(back_populates="project")
     rules: Mapped[list["RuleMemory"]] = relationship(back_populates="project")
     reports: Mapped[list["ReviewReport"]] = relationship(back_populates="project")
+    template_results: Mapped[list["TemplateAnalysisResult"]] = relationship(back_populates="project")
 
+
+class TemplateAnalysisResult(TimestampMixin, Base):
+    __tablename__ = "template_analysis_result"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    project_id: Mapped[int] = mapped_column(ForeignKey("thesis_project.id"))
+    file_id: Mapped[int | None] = mapped_column(ForeignKey("thesis_file.id"), nullable=True)
+    template_type: Mapped[str] = mapped_column(String(60), default="unknown")
+    confidence: Mapped[float] = mapped_column(default=0.0)
+    rules_json: Mapped[dict] = mapped_column(JSON, default=dict)
+    conflicts_json: Mapped[list] = mapped_column(JSON, default=list)
+    warnings_json: Mapped[list] = mapped_column(JSON, default=list)
+    source_evidence_json: Mapped[list] = mapped_column(JSON, default=list)
+    applied: Mapped[bool] = mapped_column(Boolean, default=False)
+
+    project: Mapped[ThesisProject] = relationship(back_populates="template_results")
 
 class PaperFile(TimestampMixin, Base):
     __tablename__ = "thesis_file"

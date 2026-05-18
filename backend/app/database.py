@@ -27,4 +27,17 @@ def get_db():
 def init_db() -> None:
     from app.models import entities
 
+    _prepare_lightweight_schema_migrations()
     Base.metadata.create_all(bind=engine)
+
+
+def _prepare_lightweight_schema_migrations() -> None:
+    """MVP 阶段轻量兼容旧 SQLite：必要时重建结构变化较大的规则表。"""
+
+    with engine.begin() as conn:
+        rule_columns = [row[1] for row in conn.exec_driver_sql("PRAGMA table_info(rule_memory)").fetchall()]
+        if rule_columns and "rule_code" not in rule_columns:
+            conn.exec_driver_sql("DROP TABLE rule_memory")
+        project_columns = [row[1] for row in conn.exec_driver_sql("PRAGMA table_info(thesis_project)").fetchall()]
+        if project_columns and "applied_template_rules" not in project_columns:
+            conn.exec_driver_sql("ALTER TABLE thesis_project ADD COLUMN applied_template_rules JSON DEFAULT '{}'")

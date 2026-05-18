@@ -62,3 +62,18 @@ export interface ReviewReport {
   blocked_reasons: string[]
   created_at: string
 }
+
+
+export interface TemplateAnalysisResult {
+  id: number
+  project_id: number
+  file_id?: number
+  template_type: 'instruction_only' | 'sample_paper' | 'mixed' | 'unknown'
+  confidence: number
+  rules_json: Record<string, any>
+  conflicts_json: any[]
+  warnings_json: any[]
+  source_evidence_json: any[]
+  applied: boolean
+  created_at: string
+}

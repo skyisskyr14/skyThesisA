@@ -19,7 +19,7 @@ def generate_docx(project_id: int, db: Session = Depends(get_db)):
     if not project:
         raise HTTPException(status_code=404, detail="项目不存在")
     engine = DocxEngine(EXPORT_DIR)
-    output = engine.generate_sample(project_id=project_id, title=project.title)
+    output = engine.generate_sample(project_id=project_id, title=project.title, template_rules=project.applied_template_rules)
     return {
         "project_id": project_id,
         "filename": output.name,

@@ -1,4 +1,4 @@
-import type { ChatIntent, ReviewResult, ThesisProject } from '../types'
+import type { ChatIntent, ReviewResult, TemplateAnalysisResult, ThesisProject } from '../types'
 
 const baseUrl = import.meta.env.VITE_API_BASE_URL || ''
 
@@ -29,5 +29,10 @@ export const api = {
   listRules: () => request('/api/rules'),
   runReview: (projectId: number, content: string) =>
     request<ReviewResult>('/api/reviews/run', { method: 'POST', body: JSON.stringify({ project_id: projectId, content }) }),
-  generateDocx: (projectId: number) => request('/api/docx/generate?project_id=' + projectId, { method: 'POST' })
+  generateDocx: (projectId: number) => request('/api/docx/generate?project_id=' + projectId, { method: 'POST' }),
+  analyzeDocxTemplate: (payload: { project_id: number; file_id?: number; file_path?: string }) =>
+    request<TemplateAnalysisResult>('/api/thesis/templates/analyze-docx', { method: 'POST', body: JSON.stringify(payload) }),
+  latestTemplateResult: (projectId: number) => request<TemplateAnalysisResult>(`/api/thesis/templates/${projectId}/latest`),
+  applyTemplateRules: (projectId: number, analysisId: number) =>
+    request('/api/thesis/templates/apply', { method: 'POST', body: JSON.stringify({ project_id: projectId, analysis_id: analysisId }) })
 }

@@ -26,6 +26,7 @@ class ProjectRead(ORMModel):
     status: ProjectStatus
     current_step: str
     step_statuses: dict[str, Any]
+    applied_template_rules: dict[str, Any]
     created_at: datetime
     updated_at: datetime
 
@@ -156,3 +157,35 @@ class DocxResponse(BaseModel):
     filename: str
     path: str
     download_url: str
+
+
+class AnalyzeDocxTemplateRequest(BaseModel):
+    project_id: int
+    file_id: int | None = None
+    file_path: str | None = None
+
+
+class ApplyTemplateRulesRequest(BaseModel):
+    project_id: int
+    analysis_id: int
+
+
+class TemplateAnalysisRead(ORMModel):
+    id: int
+    project_id: int
+    file_id: int | None
+    template_type: str
+    confidence: float
+    rules_json: dict[str, Any]
+    conflicts_json: list[Any]
+    warnings_json: list[Any]
+    source_evidence_json: list[Any]
+    applied: bool
+    created_at: datetime
+
+
+class ApplyTemplateRulesResponse(BaseModel):
+    project_id: int
+    analysis_id: int
+    applied: bool
+    message: str

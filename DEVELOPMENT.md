@@ -203,3 +203,135 @@ curl -L -o sample.docx http://127.0.0.1:8000/api/docx/download/project_1_sample.
 - 将模拟 Agent 替换为真实 LLM Agent，并加入引用规划、图表规划和学术润色。
 - 为 MemoryGuard 增加语义匹配、历史错误回归测试和导出前强制审查报告。
 - 增加自动化测试，覆盖 API、状态机、DOCX 生成和前端核心交互。
+
+---
+
+## 14. v0.3 DOCX 模板解析引擎
+
+v0.3 将模板分析从模拟结果升级为真实 DOCX 读取，新增 `backend/app/template_engine/`：
+
+```text
+backend/app/template_engine/
+  docx_template_parser.py          # 统一解析入口，输出 template_rules JSON
+  style_extractor.py               # 样式摘要提取
+  section_extractor.py             # 页面尺寸、页边距、分节提取
+  paragraph_rule_extractor.py      # 正文段落规则提取
+  heading_rule_extractor.py        # 一级/二级/三级标题识别
+  table_rule_extractor.py          # 图题、表题、表格和三线表倾向识别
+  header_footer_extractor.py       # 页眉页脚提取
+  reference_extractor.py           # 参考文献标题和编号样例识别
+  instruction_rule_extractor.py    # 中文说明型规则正则抽取
+  template_rule_merger.py          # 说明规则和样式规则合并
+  template_conflict_detector.py    # 冲突检测
+```
+
+### 14.1 使用测试 DOCX 模板
+
+仓库不提交成品 DOCX（二进制文件），只提交生成脚本。测试模板路径为：
+
+```text
+tests/fixtures/sample_template.docx
+```
+
+如果该文件不存在，`tests/test_template_parser.py` 会自动调用 `tests/scripts/create_sample_template.py` 生成；也可以手动生成：
+
+```bash
+python tests/scripts/create_sample_template.py
+```
+
+生成的 DOCX 包含格式说明文字、摘要、关键词、第1章、图题、表题、三线表、页眉页脚和参考文献样例，但不会提交到 Git。
+
+### 14.2 调用真实模板解析接口
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/thesis/templates/analyze-docx \
+  -H 'Content-Type: application/json' \
+  -d '{"project_id":1,"file_path":"tests/fixtures/sample_template.docx"}'
+```
+
+也可以先通过上传接口得到 `file_id`，再调用：
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/thesis/templates/analyze-docx \
+  -H 'Content-Type: application/json' \
+  -d '{"project_id":1,"file_id":1}'
+```
+
+获取最近一次模板分析结果：
+
+```bash
+curl http://127.0.0.1:8000/api/thesis/templates/1/latest
+```
+
+### 14.3 template_rules JSON 字段说明
+
+真实解析接口统一返回 `rules_json`，前端和 DOCX 生成不依赖零散字段：
+
+- `template_type`：`instruction_only`、`sample_paper`、`mixed`、`unknown`；
+- `confidence`：模板类型识别和规则抽取置信度；
+- `page`：纸张大小、页面宽高、上下左右页边距、分节数量；
+- `body`：中英文字体、字号、行距、首行缩进、对齐方式、段前段后；
+- `headings`：标题级别、样式名、字体、字号、加粗、对齐、编号模式、段前段后；
+- `figures`：图题位置、图题模式、字体、字号、对齐和样例；
+- `tables`：表题位置、表题模式、三线表倾向、表格数量、边框摘要、表头和单元格样式；
+- `header_footer`：页眉、页脚和页码信息；
+- `references`：参考文献标题、编号样式和样例；
+- `conflicts`：说明规则与样例样式不一致时的冲突列表；
+- `warnings`：缺失或不确定规则；
+- `source_evidence`：每条规则来源，例如“段落文本说明”“样式 Heading 1”。
+
+### 14.4 在前端查看模板解析结果
+
+1. 启动后端和前端；
+2. 新建论文项目并进入工作台；
+3. 点击“模板分析页”；
+4. 使用默认路径 `tests/fixtures/sample_template.docx`；如果文件不存在，先运行 `python tests/scripts/create_sample_template.py` 生成；
+5. 点击“真实解析 DOCX 模板”；
+6. 页面会分区展示页面设置、正文规则、标题规则、图题规则、表格规则、页眉页脚、参考文献、冲突、warnings 和 source_evidence；
+7. 点击“查看 JSON”可查看完整 `template_rules`。
+
+### 14.5 应用模板规则到 DOCX 生成
+
+应用最近一次分析结果：
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/thesis/templates/apply \
+  -H 'Content-Type: application/json' \
+  -d '{"project_id":1,"analysis_id":1}'
+```
+
+之后调用 DOCX 生成：
+
+```bash
+curl -X POST 'http://127.0.0.1:8000/api/docx/generate?project_id=1'
+```
+
+当前 DOCX 生成会初步应用：页边距、正文字体、正文字号、正文行距、首行缩进、一级标题字号、一级标题对齐、图题样式、表题样式和三线表设置。
+
+### 14.6 v0.3 测试脚本
+
+```bash
+PYTHONPATH=backend python tests/test_template_parser.py
+```
+
+该脚本会在 `tests/fixtures/sample_template.docx` 不存在时自动生成测试模板，并验证：
+
+1. DOCX 模板解析可运行；
+2. `template_rules` 包含必要字段；
+3. 冲突检测可识别说明规则与样例样式差异；
+4. 应用模板规则后 DOCX 生成不报错。
+
+### 14.7 v0.3 当前能力边界
+
+- 说明型规则使用正则和关键词识别，不依赖真实 LLM；
+- 成品论文型规则基于 `python-docx` 可读取的信息，复杂编号、域代码页码、复杂 OOXML 边框仍需 v0.4 深化；
+- 三线表判断目前是倾向识别，不等同于完整 Word 边框审计；
+- 冲突检测先覆盖正文、图题、表题、三线表、参考文献和标题关键字段。
+
+### 14.8 v0.4 建议方向
+
+- 增强 OOXML 级别边框、页码域、目录域和多级编号读取；
+- 支持直接上传多个模板并生成模板冲突报告；
+- 将 template_rules 与 DocxEngine 的 StyleManager、TableManager、FigureManager 深度打通；
+- 引入真实老师批注解析，并将批注约束写入 MemoryGuard；
+- 增加 pytest/API/前端 E2E 测试，覆盖完整模板解析和 DOCX 精排闭环。
