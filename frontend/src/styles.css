@@ -1,0 +1,161 @@
+body {
+  margin: 0;
+  background: #f4f6fb;
+  color: #1f2937;
+  font-family: Inter, 'Microsoft YaHei', system-ui, sans-serif;
+}
+
+.app-shell {
+  min-height: 100vh;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #111827;
+  color: #fff;
+}
+
+.brand,
+.topbar a {
+  color: #fff;
+  text-decoration: none;
+  margin-right: 20px;
+  font-weight: 700;
+}
+
+.page-header,
+.workspace-title,
+.action-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.project-card {
+  margin-bottom: 16px;
+}
+
+.form-page,
+.panel-page,
+.workspace-center,
+.chat-panel,
+.process-sidebar {
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgb(15 23 42 / 8%);
+  padding: 20px;
+}
+
+.workspace-grid {
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr) 320px;
+  gap: 16px;
+  min-height: calc(100vh - 100px);
+}
+
+.process-sidebar,
+.chat-panel {
+  height: calc(100vh - 120px);
+  position: sticky;
+  top: 80px;
+  overflow: auto;
+}
+
+.step-card {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  margin-bottom: 10px;
+}
+
+.step-card.active {
+  border-color: #409eff;
+  background: #ecf5ff;
+}
+
+.step-index {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #111827;
+  color: #fff;
+}
+
+.step-card small {
+  display: block;
+  color: #64748b;
+  margin-top: 4px;
+}
+
+.chat-list {
+  height: 45vh;
+  overflow: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 12px;
+  background: #f8fafc;
+}
+
+.chat-message {
+  padding: 10px;
+  border-radius: 10px;
+  margin-bottom: 8px;
+  white-space: pre-wrap;
+}
+
+.chat-message.agent {
+  background: #eef2ff;
+}
+
+.chat-message.user {
+  background: #dcfce7;
+}
+
+.result-box {
+  background: #0f172a;
+  color: #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
+  overflow: auto;
+  min-height: 220px;
+}
+
+.status-footer {
+  display: flex;
+  gap: 20px;
+  border-top: 1px solid #e5e7eb;
+  padding-top: 14px;
+  color: #475569;
+}
+
+.step-card {
+  width: 100%;
+  text-align: left;
+  background: #fff;
+  cursor: pointer;
+}
+
+.step-card.current {
+  box-shadow: inset 3px 0 0 #67c23a;
+}
+
+.step-work-area {
+  margin-top: 16px;
+}
+
+.operation-log {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 10px;
+  background: #fff7ed;
+  color: #9a3412;
+}
