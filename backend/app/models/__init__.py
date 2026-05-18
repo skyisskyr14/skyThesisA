@@ -1,0 +1,33 @@
+from app.models.entities import (
+    ErrorMemory,
+    Figure,
+    Outline,
+    PaperChapter,
+    PaperFile,
+    Reference,
+    RevisionTask,
+    ReviewReport,
+    RuleMemory,
+    TeacherComment,
+    ThesisProject,
+    ThesisTable,
+    ThesisVersion,
+    UserMemory,
+)
+
+__all__ = [
+    "ErrorMemory",
+    "Figure",
+    "Outline",
+    "PaperChapter",
+    "PaperFile",
+    "Reference",
+    "RevisionTask",
+    "ReviewReport",
+    "RuleMemory",
+    "TeacherComment",
+    "ThesisProject",
+    "ThesisTable",
+    "ThesisVersion",
+    "UserMemory",
+]
