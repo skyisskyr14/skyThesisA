@@ -8,6 +8,7 @@ import ChapterWritingPage from '../pages/ChapterWritingPage.vue'
 import MemoryPage from '../pages/MemoryPage.vue'
 import ErrorPage from '../pages/ErrorPage.vue'
 import ReviewReportPage from '../pages/ReviewReportPage.vue'
+import LLMSettingsPage from '../pages/LLMSettingsPage.vue'
 
 export const router = createRouter({
   history: createWebHistory(),
@@ -20,6 +21,7 @@ export const router = createRouter({
     { path: '/chapters/:id', component: ChapterWritingPage },
     { path: '/memory', component: MemoryPage },
     { path: '/errors', component: ErrorPage },
-    { path: '/reviews/:id', component: ReviewReportPage }
+    { path: '/reviews/:id', component: ReviewReportPage },
+    { path: '/llm-settings', component: LLMSettingsPage }
   ]
 })

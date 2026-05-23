@@ -204,3 +204,80 @@ class RuleMemory(TimestampMixin, Base):
     block_final_output: Mapped[bool] = mapped_column(Boolean, default=True)
 
     project: Mapped[ThesisProject | None] = relationship(back_populates="rules")
+
+
+class LLMProvider(TimestampMixin, Base):
+    __tablename__ = "llm_providers"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    provider_name: Mapped[str] = mapped_column(String(120))
+    provider_type: Mapped[str] = mapped_column(String(60))
+    base_url: Mapped[str] = mapped_column(String(300))
+    api_key_encrypted: Mapped[str] = mapped_column(Text, default="")
+    api_key_masked: Mapped[str] = mapped_column(String(80), default="")
+    default_model: Mapped[str] = mapped_column(String(120), default="")
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+
+
+class LLMModel(TimestampMixin, Base):
+    __tablename__ = "llm_models"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    provider_id: Mapped[int] = mapped_column(ForeignKey("llm_providers.id"))
+    model_name: Mapped[str] = mapped_column(String(120))
+    display_name: Mapped[str] = mapped_column(String(120), default="")
+    context_window: Mapped[int] = mapped_column(Integer, default=8192)
+    max_output_tokens: Mapped[int] = mapped_column(Integer, default=2000)
+    supports_streaming: Mapped[bool] = mapped_column(Boolean, default=False)
+    supports_json_mode: Mapped[bool] = mapped_column(Boolean, default=True)
+    supports_vision: Mapped[bool] = mapped_column(Boolean, default=False)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+
+
+class LLMStepBinding(TimestampMixin, Base):
+    __tablename__ = "llm_step_bindings"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    step_key: Mapped[str] = mapped_column(String(80), index=True)
+    step_name: Mapped[str] = mapped_column(String(120), default="")
+    provider_id: Mapped[int] = mapped_column(ForeignKey("llm_providers.id"))
+    model_id: Mapped[int] = mapped_column(ForeignKey("llm_models.id"))
+    temperature: Mapped[float] = mapped_column(default=0.7)
+    max_tokens: Mapped[int] = mapped_column(Integer, default=2000)
+    system_prompt: Mapped[str] = mapped_column(Text, default="")
+    enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+
+
+class LLMCallLog(TimestampMixin, Base):
+    __tablename__ = "llm_call_logs"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    project_id: Mapped[int | None] = mapped_column(ForeignKey("thesis_project.id"), nullable=True)
+    step_key: Mapped[str] = mapped_column(String(80), default="right_chat")
+    provider_id: Mapped[int] = mapped_column(ForeignKey("llm_providers.id"))
+    model_id: Mapped[int] = mapped_column(ForeignKey("llm_models.id"))
+    request_summary: Mapped[str] = mapped_column(Text, default="")
+    response_summary: Mapped[str] = mapped_column(Text, default="")
+    prompt_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    completion_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    total_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    latency_ms: Mapped[int] = mapped_column(Integer, default=0)
+    success: Mapped[bool] = mapped_column(Boolean, default=True)
+    error_message: Mapped[str] = mapped_column(Text, default="")
+
+
+class ChatSession(TimestampMixin, Base):
+    __tablename__ = "chat_sessions"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    project_id: Mapped[int] = mapped_column(ForeignKey("thesis_project.id"))
+    title: Mapped[str] = mapped_column(String(200), default="默认会话")
+    current_step: Mapped[str] = mapped_column(String(80), default="right_chat")
+
+
+class ChatMessage(TimestampMixin, Base):
+    __tablename__ = "chat_messages"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    session_id: Mapped[int] = mapped_column(ForeignKey("chat_sessions.id"))
+    project_id: Mapped[int] = mapped_column(ForeignKey("thesis_project.id"))
+    role: Mapped[str] = mapped_column(String(30))
+    content: Mapped[str] = mapped_column(Text)
+    step_key: Mapped[str] = mapped_column(String(80), default="right_chat")
+    parsed_intent_json: Mapped[dict] = mapped_column(JSON, default=dict)
+    action_result_json: Mapped[dict] = mapped_column(JSON, default=dict)
+    llm_call_log_id: Mapped[int | None] = mapped_column(ForeignKey("llm_call_logs.id"), nullable=True)

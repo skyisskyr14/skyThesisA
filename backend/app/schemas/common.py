@@ -205,3 +205,71 @@ class GenerateFullDocxResponse(BaseModel):
     applied_rules_summary: list[str]
     missing_rules: list[str]
     format_validation: dict[str, Any]
+
+class LLMProviderCreate(BaseModel):
+    provider_name: str
+    provider_type: str
+    base_url: str
+    api_key: str = ""
+    default_model: str = ""
+    is_active: bool = True
+
+
+class LLMProviderRead(ORMModel):
+    id: int
+    provider_name: str
+    provider_type: str
+    base_url: str
+    api_key_masked: str
+    default_model: str
+    is_active: bool
+
+
+class LLMModelCreate(BaseModel):
+    provider_id: int
+    model_name: str
+    display_name: str = ""
+    context_window: int = 8192
+    max_output_tokens: int = 2000
+    supports_streaming: bool = False
+    supports_json_mode: bool = True
+    supports_vision: bool = False
+    is_active: bool = True
+
+
+class LLMModelRead(ORMModel):
+    id: int
+    provider_id: int
+    model_name: str
+    display_name: str
+
+
+class LLMStepBindingCreate(BaseModel):
+    step_key: str
+    step_name: str = ""
+    provider_id: int
+    model_id: int
+    temperature: float = 0.7
+    max_tokens: int = 2000
+    system_prompt: str = ""
+    enabled: bool = True
+
+
+class LLMStepBindingRead(ORMModel):
+    id: int
+    step_key: str
+    step_name: str
+    provider_id: int
+    model_id: int
+    temperature: float
+    max_tokens: int
+    system_prompt: str
+    enabled: bool
+
+
+class ChatSendRequest(BaseModel):
+    project_id: int
+    message: str
+    current_step: str = "chapter_writing"
+    current_chapter_id: int | None = None
+    selected_block_id: str | None = None

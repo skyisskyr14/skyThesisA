@@ -94,3 +94,11 @@ export interface GenerateFullDocxResponse {
     checks: Record<string, unknown>[]
   }
 }
+
+
+export interface ChatSendResponse {
+  assistant_message: string
+  parsed_intent: Record<string, any>
+  action_result: Record<string, any>
+  llm_call_log_id: number
+}

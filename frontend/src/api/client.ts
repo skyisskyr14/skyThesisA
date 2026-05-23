@@ -1,4 +1,4 @@
-import type { ChatIntent, GenerateFullDocxResponse, ReviewResult, TemplateAnalysisResult, ThesisProject } from '../types'
+import type { ChatIntent, ChatSendResponse, GenerateFullDocxResponse, ReviewResult, TemplateAnalysisResult, ThesisProject } from '../types'
 
 const baseUrl = import.meta.env.VITE_API_BASE_URL || ''
 
@@ -24,6 +24,8 @@ export const api = {
     request(`/api/chapters/generate?project_id=${projectId}&chapter_no=${chapterNo}`, { method: 'POST' }),
   parseChat: (projectId: number | undefined, message: string) =>
     request<ChatIntent>('/api/chat', { method: 'POST', body: JSON.stringify({ project_id: projectId, message }) }),
+  sendChat: (payload: { project_id: number; message: string; current_step: string; current_chapter_id?: number | null; selected_block_id?: string | null }) =>
+    request<ChatSendResponse>('/api/thesis/chat/send', { method: 'POST', body: JSON.stringify(payload) }),
   listMemory: () => request('/api/memory'),
   listErrors: () => request('/api/errors'),
   listRules: () => request('/api/rules'),
