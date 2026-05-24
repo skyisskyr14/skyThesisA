@@ -19,9 +19,14 @@ export const api = {
     request<ThesisProject>('/api/projects', { method: 'POST', body: JSON.stringify(payload) }),
   getProject: (id: number) => request<ThesisProject>(`/api/projects/${id}`),
   analyzeTemplate: (projectId: number) => request('/api/templates/analyze?project_id=' + projectId, { method: 'POST' }),
-  generateOutline: (projectId: number) => request('/api/outlines/generate?project_id=' + projectId, { method: 'POST' }),
-  generateChapter: (projectId: number, chapterNo = 1) =>
-    request(`/api/chapters/generate?project_id=${projectId}&chapter_no=${chapterNo}`, { method: 'POST' }),
+  generateOutline: (payloadOrProjectId: any) => {
+    const payload = typeof payloadOrProjectId === 'number' ? { project_id: payloadOrProjectId } : payloadOrProjectId
+    return request('/api/thesis/outline/generate-real', { method: 'POST', body: JSON.stringify(payload) })
+  },
+  generateChapter: (payloadOrProjectId: any, chapterNo = 1) => {
+    const payload = typeof payloadOrProjectId === 'number' ? { project_id: payloadOrProjectId, chapter_no: chapterNo } : payloadOrProjectId
+    return request('/api/thesis/chapters/generate-real', { method: 'POST', body: JSON.stringify(payload) })
+  },
   parseChat: (projectId: number | undefined, message: string) =>
     request<ChatIntent>('/api/chat', { method: 'POST', body: JSON.stringify({ project_id: projectId, message }) }),
   sendChat: (payload: { project_id: number; message: string; current_step: string; current_chapter_id?: number | null; selected_block_id?: string | null }) =>
@@ -37,9 +42,8 @@ export const api = {
   latestTemplateResult: (projectId: number) => request<TemplateAnalysisResult>(`/api/thesis/templates/${projectId}/latest`),
   applyTemplateRules: (projectId: number, analysisId: number) =>
     request('/api/thesis/templates/apply', { method: 'POST', body: JSON.stringify({ project_id: projectId, analysis_id: analysisId }) }),
-  generateFullDocx: (projectId: number, useTemplateRules: boolean) =>
-    request<GenerateFullDocxResponse>('/api/thesis/docx/generate-full', {
-      method: 'POST',
-      body: JSON.stringify({ project_id: projectId, use_template_rules: useTemplateRules, use_mock_content: true })
-    })
+  generateFullDocx: (payloadOrProjectId: any, useTemplateRules = true) => {
+    const payload = typeof payloadOrProjectId === 'number' ? { project_id: payloadOrProjectId, use_template_rules: useTemplateRules } : payloadOrProjectId
+    return request<GenerateFullDocxResponse>('/api/thesis/docx/generate-full', { method: 'POST', body: JSON.stringify(payload) })
+  }
 }

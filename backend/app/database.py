@@ -41,3 +41,18 @@ def _prepare_lightweight_schema_migrations() -> None:
         project_columns = [row[1] for row in conn.exec_driver_sql("PRAGMA table_info(thesis_project)").fetchall()]
         if project_columns and "applied_template_rules" not in project_columns:
             conn.exec_driver_sql("ALTER TABLE thesis_project ADD COLUMN applied_template_rules JSON DEFAULT '{}'")
+
+        llm_cols = [row[1] for row in conn.exec_driver_sql("PRAGMA table_info(llm_providers)").fetchall()]
+        if llm_cols:
+            add_cols = {
+                "credential_source": "TEXT DEFAULT 'encrypted_database'",
+                "credential_env_name": "TEXT DEFAULT ''",
+                "api_key_ciphertext": "TEXT DEFAULT ''",
+                "api_key_last_four": "TEXT DEFAULT ''",
+                "encryption_version": "TEXT DEFAULT 'fernet_v1'",
+                "credential_status": "TEXT DEFAULT 'missing'",
+            }
+            for c,t in add_cols.items():
+                if c not in llm_cols:
+                    conn.exec_driver_sql(f"ALTER TABLE llm_providers ADD COLUMN {c} {t}")
+

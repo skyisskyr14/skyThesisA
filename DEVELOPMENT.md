@@ -474,3 +474,60 @@ PYTHONPATH=backend python tests/scripts/test_generate_full_docx.py
 - 支持图片/SVG 插入和图题自动编号；
 - 输出独立格式审查报告文件；
 - 引入更完整的自动化测试和端到端验收。
+
+## v0.6 真实化改造（本次迭代）
+### 已完成
+1. 启动时自动创建 `DeepSeek Default` provider（环境变量密钥模式）。
+2. 启动时自动创建关键步骤绑定（right_chat / outline_generation / chapter_writing 等）。
+3. 新增真实大纲接口：`POST /api/thesis/outline/generate-real`。
+4. 新增真实章节接口：`POST /api/thesis/chapters/generate-real`。
+5. 真实聊天接口继续使用 `/api/thesis/chat/send`，并记录 token 日志。
+6. `generate-full` 改为基于项目真实章节内容生成，不再使用 mock paper。
+7. 新增真实人工验证脚本：
+   - `scripts/verify_real_deepseek_connection.py`
+   - `scripts/import_real_document.py`
+   - `scripts/parse_real_teacher_comments.py`
+   - `scripts/run_real_revision_for_task.py`
+
+### 尚未完成（明确边界）
+- 老师批注完整 XML 定位到 block_id 的全链路与返修执行页仍待下一迭代。
+- 论文导入为完整 PaperDocument（含章节/区段稳定 block_id）当前为基础能力，尚需完善。
+- 前端“真实工作台”全页面改造（资料中心、返修差异页、版本中心）尚未全部完成。
+
+### 真实验收最小流程
+1. 设置 `DEEPSEEK_API_KEY`。
+2. 启动后端/前端。
+3. 调用 `python scripts/verify_real_deepseek_connection.py deepseek-v4-flash` 验证连通。
+4. 新建项目并上传真实资料。
+5. 调用 `/api/thesis/outline/generate-real`。
+6. 调用 `/api/thesis/chapters/generate-real`。
+7. 调用 `/api/thesis/docx/generate-full` 生成真实 DOCX。
+
+## v0.6 第一阶段审计结果（本次编码前核验）
+- DeepSeek Default 已存在，默认模型为 `deepseek-v4-flash`，并通过 `credential_env_name=DEEPSEEK_API_KEY` 读取环境变量。
+- `right_chat`、`outline/chapter generate-real` 已走真实模型调用，失败不会自动伪造成功。
+- `/api/thesis/docx/generate-full` 已移除 mock paper 入口，要求真实内容来源。
+- 正式路由已移除 `mock_pipeline` 入口，但前端仍残留旧接口调用，本次已改为真实接口。
+- 当前缺失：数据库加密型 provider、真实资料中心完整 API、DOCX 导入 PaperDocument、paper_versions 管理页面与接口。
+
+## v0.6 第二阶段实现内容（本次）
+1. 新增统一凭证源字段：`credential_source`（environment_variable / encrypted_database）。
+2. 新增数据库加密保存方案：`LLM_CREDENTIAL_MASTER_KEY` + Fernet。
+3. 新增/增强真实资料中心 API：`/api/thesis/files/*`（上传/列表/识别/解析/删除）。
+4. 新增真实论文导入 API：`POST /api/thesis/papers/import-docx`，导入后生成 `paper_versions` 首版本。
+5. 新增版本管理 API：列表、详情、选当前版本、按版本生成 DOCX。
+6. `generate-full` 改为强依赖 `paper_version_id` 或当前版本。
+7. 新增 token usage 汇总接口：`GET /api/thesis/llm/usage/{project_id}`。
+
+## 密钥安全与迁移说明
+- 环境变量 provider 仅保存变量名，不保存明文 key。
+- 数据库 provider 保存 `api_key_ciphertext` + `api_key_last_four` + `api_key_masked`。
+- 旧字段 `api_key_encrypted` 仅兼容保留，不再作为主字段写入。
+
+## 本次真实 DeepSeek 测试范围
+- 仅允许极短连接测试（Reply only: OK）。
+- 未使用用户真实论文资料触发大纲/章节真实业务调用。
+
+## 尚未完成（下一阶段）
+- 老师批注 XML 精确定位到 block_id 与自动返修执行。
+- 批注差异前端完整可视化。

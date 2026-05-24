@@ -801,3 +801,20 @@ Thesis Agent 是一个以 DOCX 精排引擎为核心，以多 Agent 审查返工
 - 仓库不提交 DOCX 等二进制测试产物，测试模板由 `tests/scripts/create_sample_template.py` 自动生成；
 - v0.4 增强 DOCX 精排引擎，支持封面、摘要、目录、正文、图占位、三线表、参考文献、页眉页脚、格式审查报告；
 - 详细安装、启动和接口测试步骤见 `DEVELOPMENT.md`。
+
+## v0.6 真实项目阶段说明（新增）
+- 默认接入 DeepSeek（`https://api.deepseek.com/chat/completions`），密钥通过环境变量 `DEEPSEEK_API_KEY` 读取。
+- 正式流程不再以 mock 数据作为结果来源；真实生成失败将返回失败，不会伪成功。
+- `/api/thesis/outline/generate-real`、`/api/thesis/chapters/generate-real`、`/api/thesis/chat/send` 均为真实模型调用路径。
+- `/api/thesis/docx/generate-full` 仅在项目已有真实章节内容时允许生成，否则返回错误。
+- API Key 不会在前端明文显示，也不得写入仓库。
+
+## v0.6 第二阶段（真实底座）
+- 支持两类 provider 凭证：
+  - `environment_variable`（如 `DEEPSEEK_API_KEY`）
+  - `encrypted_database`（后端 Fernet 加密保存）
+- 新增真实资料中心：上传并管理 `.docx/.txt/.md` 资料。
+- 新增真实 DOCX 导入为 PaperDocument，并创建 `paper_versions` 首版本。
+- 真实大纲/章节/对话调用均记录 token，支持项目级用量汇总。
+- 完整 DOCX 生成改为基于真实版本，不再接受 mock 内容。
+- 下一阶段将继续实现老师批注精确定位与返修执行链路。

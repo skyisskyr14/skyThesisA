@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.database import SessionLocal, init_db
 from app.memory_guard import seed_default_rules
+from app.llm.bootstrap import ensure_default_deepseek
 from app.routes import routers
 
 app = FastAPI(title="Thesis Agent MVP", version="0.1.0")
@@ -21,6 +22,7 @@ def startup() -> None:
     init_db()
     db = SessionLocal()
     seed_default_rules(db)
+    ensure_default_deepseek(db)
     db.close()
 
 

@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -11,7 +12,8 @@ router = APIRouter(prefix="/api/thesis/llm", tags=["llm"])
 
 @router.post('/providers', response_model=LLMProviderRead)
 def add_provider(payload: LLMProviderCreate, db: Session = Depends(get_db)):
-    return create_provider(db, payload)
+    try: return create_provider(db, payload)
+    except Exception as e: raise HTTPException(400, str(e))
 
 @router.get('/providers', response_model=list[LLMProviderRead])
 def list_providers(db: Session = Depends(get_db)):
@@ -33,6 +35,7 @@ def disable_provider(provider_id: int, db: Session = Depends(get_db)):
 def run_test(provider_id: int, db: Session = Depends(get_db)):
     provider = db.get(LLMProvider, provider_id)
     if not provider: raise HTTPException(404, 'provider not found')
+    if not provider.default_model: raise HTTPException(400, 'default_model 未配置')
     return test_provider(provider.base_url, get_provider_api_key(provider), provider.default_model)
 
 @router.post('/models', response_model=LLMModelRead)
@@ -55,9 +58,24 @@ def list_bindings(db: Session = Depends(get_db)):
 def edit_binding(binding_id: int, payload: LLMStepBindingCreate, db: Session = Depends(get_db)):
     b = db.get(LLMStepBinding, binding_id)
     if not b: raise HTTPException(404, 'binding not found')
-    for k,v in payload.model_dump().items(): setattr(b,k,v)
+    for k, v in payload.model_dump().items(): setattr(b, k, v)
     db.commit(); db.refresh(b); return b
 
 @router.get('/call-logs')
 def list_logs(db: Session = Depends(get_db)):
     return db.query(LLMCallLog).order_by(LLMCallLog.created_at.desc()).limit(200).all()
+
+@router.get('/usage/{project_id}')
+def usage(project_id: int, db: Session = Depends(get_db)):
+    rows = db.query(LLMCallLog).filter(LLMCallLog.project_id == project_id).all()
+    return {
+        'project_id': project_id,
+        'total_calls': len(rows),
+        'successful_calls': len([r for r in rows if r.success]),
+        'failed_calls': len([r for r in rows if not r.success]),
+        'prompt_tokens': sum(r.prompt_tokens for r in rows),
+        'completion_tokens': sum(r.completion_tokens for r in rows),
+        'total_tokens': sum(r.total_tokens for r in rows),
+        'by_step': [],
+        'by_model': []
+    }

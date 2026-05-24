@@ -215,6 +215,12 @@ class LLMProvider(TimestampMixin, Base):
     api_key_encrypted: Mapped[str] = mapped_column(Text, default="")
     api_key_masked: Mapped[str] = mapped_column(String(80), default="")
     default_model: Mapped[str] = mapped_column(String(120), default="")
+    credential_source: Mapped[str] = mapped_column(String(40), default="encrypted_database")
+    credential_env_name: Mapped[str] = mapped_column(String(80), default="")
+    api_key_ciphertext: Mapped[str] = mapped_column(Text, default="")
+    api_key_last_four: Mapped[str] = mapped_column(String(4), default="")
+    encryption_version: Mapped[str] = mapped_column(String(20), default="fernet_v1")
+    credential_status: Mapped[str] = mapped_column(String(20), default="missing")
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
 
@@ -260,6 +266,7 @@ class LLMCallLog(TimestampMixin, Base):
     latency_ms: Mapped[int] = mapped_column(Integer, default=0)
     success: Mapped[bool] = mapped_column(Boolean, default=True)
     error_message: Mapped[str] = mapped_column(Text, default="")
+    user_triggered: Mapped[bool] = mapped_column(Boolean, default=True)
 
 
 class ChatSession(TimestampMixin, Base):
@@ -281,3 +288,20 @@ class ChatMessage(TimestampMixin, Base):
     parsed_intent_json: Mapped[dict] = mapped_column(JSON, default=dict)
     action_result_json: Mapped[dict] = mapped_column(JSON, default=dict)
     llm_call_log_id: Mapped[int | None] = mapped_column(ForeignKey("llm_call_logs.id"), nullable=True)
+
+
+class PaperVersion(TimestampMixin, Base):
+    __tablename__ = "paper_versions"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    project_id: Mapped[int] = mapped_column(ForeignKey("thesis_project.id"))
+    version_no: Mapped[str] = mapped_column(String(40), default="v1")
+    version_name: Mapped[str] = mapped_column(String(120), default="初始版本")
+    version_type: Mapped[str] = mapped_column(String(60), default="import_original")
+    source_version_id: Mapped[int | None] = mapped_column(ForeignKey("paper_versions.id"), nullable=True)
+    source_file_id: Mapped[int | None] = mapped_column(ForeignKey("thesis_file.id"), nullable=True)
+    paper_document_json: Mapped[dict] = mapped_column(JSON, default=dict)
+    docx_path: Mapped[str] = mapped_column(String(500), default="")
+    change_summary: Mapped[str] = mapped_column(Text, default="")
+    llm_call_log_ids_json: Mapped[list] = mapped_column(JSON, default=list)
+    total_tokens_used: Mapped[int] = mapped_column(Integer, default=0)
+    is_current: Mapped[bool] = mapped_column(Boolean, default=False)

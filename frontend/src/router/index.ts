@@ -9,6 +9,9 @@ import MemoryPage from '../pages/MemoryPage.vue'
 import ErrorPage from '../pages/ErrorPage.vue'
 import ReviewReportPage from '../pages/ReviewReportPage.vue'
 import LLMSettingsPage from '../pages/LLMSettingsPage.vue'
+import PaperVersionsPage from '../pages/PaperVersionsPage.vue'
+import PaperImportPage from '../pages/PaperImportPage.vue'
+import ProjectFilesPage from '../pages/ProjectFilesPage.vue'
 
 export const router = createRouter({
   history: createWebHistory(),
@@ -22,6 +25,9 @@ export const router = createRouter({
     { path: '/memory', component: MemoryPage },
     { path: '/errors', component: ErrorPage },
     { path: '/reviews/:id', component: ReviewReportPage },
-    { path: '/llm-settings', component: LLMSettingsPage }
+    { path: '/llm-settings', component: LLMSettingsPage },
+    { path: '/project-files', component: ProjectFilesPage },
+    { path: '/paper-import', component: PaperImportPage },
+    { path: '/paper-versions', component: PaperVersionsPage }
   ]
 })

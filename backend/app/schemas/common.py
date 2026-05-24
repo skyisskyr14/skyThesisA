@@ -193,8 +193,8 @@ class ApplyTemplateRulesResponse(BaseModel):
 
 class GenerateFullDocxRequest(BaseModel):
     project_id: int
+    paper_version_id: int | None = None
     use_template_rules: bool = True
-    use_mock_content: bool = True
 
 
 class GenerateFullDocxResponse(BaseModel):
@@ -210,6 +210,8 @@ class LLMProviderCreate(BaseModel):
     provider_name: str
     provider_type: str
     base_url: str
+    credential_source: str = "encrypted_database"
+    credential_env_name: str = ""
     api_key: str = ""
     default_model: str = ""
     is_active: bool = True
@@ -220,6 +222,9 @@ class LLMProviderRead(ORMModel):
     provider_name: str
     provider_type: str
     base_url: str
+    credential_source: str
+    credential_env_name: str
+    credential_status: str
     api_key_masked: str
     default_model: str
     is_active: bool
